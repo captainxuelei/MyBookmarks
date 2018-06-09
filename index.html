@@ -1,61 +1,142 @@
 <!DOCTYPE html>
 <html lang="zh-Hans">
+
 <head>
     <meta charset="UTF-8">
     <title>导航网站</title>
-    <link rel="stylesheet" href="./style.css">    
+    <link rel="stylesheet" href="./style.css">
 </head>
+
 <body>
     <header></header>
     <main>
-        <div class="wrapper" id='xx'></div>
+        <div class="wrapper" id='main'></div>
     </main>
     <footer></footer>
     <script>
-        var keys = {
-            0:['q','w','e','r','t','y','u','i','o','p'],
-            1:['a','s','d','f','g','h','j','k','l'],
-            2:['z','x','c','v','b','n','m'],
-            length: 3
-        }
-        var hash = {q: 'qq.com',w: 'weibo.com',t: 'tianya.com',y: 'youku.com',i: 'iqiyi.com',p: undefined,a: 'amazon.com',s: 'sohu.com',g: 'google.com',j: 'jd.com',z: 'zhihu.com'
-        }
-        var hashInlocalStorage = JSON.parse(localStorage.getItem('zzz') || 'null')
-        if(hashInlocalStorage){
-            hash = hashInlocalStorage
-        }
-        index = 0
-        while(index < keys.length){
-            divkbd = document.createElement('div')
-            xx.appendChild(divkbd)
-            row = keys[index]
-            console.log(row)
-            index2 = 0
-            while(index2 < row.length){
-                kbdxx = document.createElement('kbd')
-                kbdxx.textContent = row[index2]
-                buttonxx = document.createElement('button')
-                buttonxx.textContent = '编辑'
-                buttonxx.id = row[index2]
-                buttonxx.onclick = function(whatever){
-                    key = whatever.target.id
-                    input = prompt('请输入一个网址')
-                    hash[key] = input
-                    localStorage.setItem('zzz', JSON.stringify(hash))
-                    console.log(hash)
-                }
-                kbdxx.appendChild(buttonxx)
-                divkbd.appendChild(kbdxx)
-                index2 = index2 + 1
+        //1.初始化数据        
+        var hashA = init()
+        var keys = hashA['keys']
+        var hash = hashA['hash']
+
+
+        //2.生成键盘
+        generateKeyboard(keys, hash)
+
+
+        //3.监听用户指令
+        listenToUser(hash)
+
+
+        //封装的函数
+        function init() {
+            var keys = {
+                0: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                1: ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+                2: ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
+                length: 3
             }
-            index = index + 1
+            var hash = {
+                q: 'qq.com', w: 'weibo.com', t: 'tmall.com', y: 'youku.com', i: 'ruanyifeng.com', o: '163.com', p: undefined, a: 'amazon.com', s: 'suning.com', d: 'douban.com', g: 'qunar.com', j: 'jd.com', z: 'zhihu.com', b: 'baidu.com'
+            }
+            var hashInlocalStorage = getfromlocalStorage('zzz')
+            if (hashInlocalStorage) {
+                hash = hashInlocalStorage
+            }
+            return {
+                'keys': keys,
+                'hash': hash
+            }
         }
-        document.onkeypress = function(suibian){
-            key = suibian['key']
-            website = hash[key]
-            //location.href = 'http://'+website
-            window.open('http://'+website, '_blank')
+
+        function generateKeyboard(keys, hash) {
+            for (var index = 0; index < keys.length; index++) {
+                var div = tag('div')
+                div.className = 'row'
+
+                main.appendChild(div)
+
+                var row = keys[index]
+                for (var index2 = 0; index2 < row.length; index2++) {
+
+                    var span = createSpan(row[index2])
+
+                    var button = createButton(row[index2])
+
+                    var img = createImg(hash[row[index2]])
+
+                    var kbd = tag('kbd')
+                    kbd.className = 'key'
+
+                    kbd.appendChild(span)
+                    kbd.appendChild(img)
+                    kbd.appendChild(button)
+
+                    div.appendChild(kbd)
+                }
+            }
+        }
+
+        function listenToUser(hash) {
+            document.onkeypress = function (suibian) {
+                var key = suibian['key']
+                var website = hash[key]
+                //location.href = 'http://'+website
+                window.open('http://' + website, '_blank')
+            }
+        }
+
+        function getfromlocalStorage(name) {
+            return JSON.parse(localStorage.getItem(name) || 'null')
+        }
+
+        function tag(tagName, attributes) {
+            return document.createElement(tagName)
+            /*for(var key3 in attributes){ //key可以为 className, id, textContent
+                element[key3] = attributes[key3]
+            }
+            return element*/
+        }
+
+        function createSpan(textContent) {
+            var span = tag('span')
+            span.textContent = textContent
+            span.className = 'text'
+            return span
+        }
+
+        function createButton(id) {
+            var button = tag('button')
+            button.textContent = '编辑'
+            button.id = id
+            button.onclick = function (whatever) {
+                var button2 = whatever['target']
+                var img2 = button2.previousSibling
+                var key = button2.id
+                var input = prompt('请输入一个网址')
+                hash[key] = input
+                img2.src = 'http://' + input + '/favicon.ico'
+                img2.onerror = function (xxx) {
+                    xxx.target.src = '//s1.ax2x.com/2018/06/09/RicBh.png'
+                }
+                localStorage.setItem('zzz', JSON.stringify(hash))
+            }
+            return button
+        }
+
+        function createImg(domain) {
+            var img = tag('img')
+            if (domain) {
+                img.src = 'http://' + domain + '/favicon.ico'
+            } else {
+                img.src = '//s1.ax2x.com/2018/06/09/RicBh.png'
+            }
+            img.onerror = function (yyy) {
+                yyy.target.src = '//s1.ax2x.com/2018/06/09/RicBh.png'
+            }
+            return img
         }
     </script>
 </body>
+
 </html>
